@@ -37,12 +37,13 @@ func main() {
 
 	t := NewTCOP(client)
 
-	r, err := t.ListAlarmPolicy(ctx, 1, 20)
+	r, err := t.SearchAlarmPolicyByName(ctx, "redis")
 	if err != nil {
 		panic(err)
 	}
 	// 输出json格式的字符串回包
-	for _, policy := range r {
+	for _, policy := range r.Policies {
 		fmt.Printf("%+v", policy)
+		fmt.Println("\n---")
 	}
 }

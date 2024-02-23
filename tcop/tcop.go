@@ -3,10 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/json"
 	monitor "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/monitor/v20180724"
+	"github.com/tidwall/gjson"
+
+	"github.com/vissong/TCOP-Policy-CMD/tcop/entity"
+)
+
+const (
+	MaxPageSize = 100
 )
 
 type TCOP struct {
@@ -17,8 +27,36 @@ func NewTCOP(client *monitor.Client) *TCOP {
 	return &TCOP{client: client}
 }
 
-func (t *TCOP) ListAlarmPolicy(ctx context.Context, pageNum,
-	pageSize int64) ([]*Policy, error) {
+// SearchAlarmPolicyByName 基于监控策略名字搜索
+func (t *TCOP) SearchAlarmPolicyByName(ctx context.Context, keyword string) (*entity.AlarmPolicies, error) {
+	log.Printf("keyword is %s", keyword)
+	var page int64 = 1
+	result := &entity.AlarmPolicies{}
+	maxLoop := 1000
+
+	for i := 0; i < maxLoop; i++ {
+		list, err := t.ListAlarmPolicy(ctx, page, MaxPageSize)
+		// 翻尽了
+		if len(list.Policies) == 0 {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range list.Policies {
+			if strings.Contains(item.PolicyName, keyword) {
+				result.Policies = append(result.Policies, item)
+			}
+		}
+		page++
+	}
+	result.TotalCount = len(result.Policies)
+	return result, nil
+}
+
+// ListAlarmPolicy 分页加载监控策略
+func (t *TCOP) ListAlarmPolicy(_ context.Context, pageNum,
+	pageSize int64) (*entity.AlarmPolicies, error) {
 
 	request := monitor.NewDescribeAlarmPoliciesRequest()
 	request.Module = common.StringPtr("monitor")
@@ -32,57 +70,29 @@ func (t *TCOP) ListAlarmPolicy(ctx context.Context, pageNum,
 	if err != nil {
 		return nil, err
 	}
-	var ret []*Policy
-	for _, policy := range response.Response.Policies {
-		ret = append(ret, convertPolicy(policy))
-	}
-	return ret, nil
+
+	result := convert(response.ToJsonString(), "Response", &entity.AlarmPolicies{}).(*entity.AlarmPolicies)
+	return result, nil
 }
 
-// convertPolicy 对象转换，腾讯云的对象字段都是指针，十分的不友好
-func convertPolicy(policy *monitor.AlarmPolicy) *Policy {
-	r := &Policy{
-		PolicyId:            *policy.PolicyId,
-		PolicyName:          *policy.PolicyName,
-		Remark:              *policy.Remark,
-		MonitorType:         *policy.MonitorType,
-		Enable:              *policy.Enable,
-		UseSum:              *policy.UseSum,
-		Namespace:           *policy.Namespace,
-		ConditionTemplateId: *policy.ConditionTemplateId,
-		Condition:           *policy.Condition,
-		EventCondition:      *policy.EventCondition,
-		LastEditUin:         *policy.LastEditUin,
-		UpdateTime:          *policy.UpdateTime,
-		InsertTime:          *policy.InsertTime,
-		// Region:                *policy.Region,
-		NamespaceShowName: *policy.NamespaceShowName,
-		InstanceGroupId:   *policy.InstanceGroupId,
-		InstanceSum:       *policy.InstanceSum,
-		InstanceGroupName: *policy.InstanceGroupName,
-		RuleType:          *policy.RuleType,
-		OriginId:          *policy.OriginId,
-		// TagInstances:          *policy.TagInstances,
-		Filter: monitor.AlarmConditionFilter{},
-		// GroupBy:               *policy.GroupBy,
-		FilterDimensionsParam: *policy.FilterDimensionsParam,
-		IsOneClick:            *policy.IsOneClick,
-		OneClickStatus:        *policy.OneClickStatus,
-		IsBindAll:             *policy.IsBindAll,
-		IsSupportAlarmTag:     *policy.IsSupportAlarmTag,
-		Tags:                  []PolicyTag{},
-		NoticeIds:             []string{},
-	}
-	for _, id := range policy.NoticeIds {
-		r.NoticeIds = append(r.NoticeIds, *id)
-	}
-	for _, tag := range policy.Tags {
-		r.Tags = append(
-			r.Tags, PolicyTag{
-				Key:   *tag.Key,
-				Value: *tag.Value,
-			},
-		)
-	}
-	return r
+type CreateAlarmParams struct {
+	Name                string
+	Remark              string
+	Namespace           string
+	ConditionTemplateId string
+	NoticeIDs           []string
+	Tags                []entity.Tag
+}
+
+// func (t *TCOP) CreateAlarmPolicy(ctx context.Context, policies *entity.AlarmPolicies) (*entity.AlarmPolicies, error) {
+// 	request := monitor.NewCreateAlarmPolicyRequest()
+// 	t.client.CreateAlarmPolicyWithContext(ctx, request)
+// }
+
+// 从 json 中得到数据之后，解析为目标对象
+func convert(inputJSON string, path string, entity interface{}) interface{} {
+	body := gjson.Get(inputJSON, path).String()
+	// log.Println(body)
+	_ = json.Unmarshal([]byte(body), entity)
+	return entity
 }
