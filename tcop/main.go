@@ -37,13 +37,27 @@ func main() {
 
 	t := NewTCOP(client)
 
-	r, err := t.SearchAlarmPolicyByName(ctx, "redis")
+	// r, err := t.SearchAlarmPolicyByName(ctx, "redis")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// // 输出json格式的字符串回包
+	// for _, policy := range r.Policies {
+	// 	fmt.Printf("%+v", policy)
+	// 	fmt.Println("\n---")
+	// }
+	r, err := t.CreateAlarmPolicy(
+		ctx, &CreateAlarmParams{
+			Name:                "test1",
+			Remark:              "",
+			Namespace:           "redis_mem_edition",
+			ConditionTemplateId: 8362782,
+			NoticeIDs:           nil,
+			Tags:                nil,
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
-	// 输出json格式的字符串回包
-	for _, policy := range r.Policies {
-		fmt.Printf("%+v", policy)
-		fmt.Println("\n---")
-	}
+	fmt.Println(r)
 }

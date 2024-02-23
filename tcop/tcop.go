@@ -17,6 +17,8 @@ import (
 
 const (
 	MaxPageSize = 100
+	AlarmModule = "monitor"
+	MonitorType = "MT_QCE" // 云产品监控类型
 )
 
 type TCOP struct {
@@ -59,7 +61,7 @@ func (t *TCOP) ListAlarmPolicy(_ context.Context, pageNum,
 	pageSize int64) (*entity.AlarmPolicies, error) {
 
 	request := monitor.NewDescribeAlarmPoliciesRequest()
-	request.Module = common.StringPtr("monitor")
+	request.Module = common.StringPtr(AlarmModule)
 	request.PageNumber = common.Int64Ptr(pageNum)
 	request.PageSize = common.Int64Ptr(pageSize)
 
@@ -79,15 +81,63 @@ type CreateAlarmParams struct {
 	Name                string
 	Remark              string
 	Namespace           string
-	ConditionTemplateId string
+	ConditionTemplateId int64
 	NoticeIDs           []string
 	Tags                []entity.Tag
+	ProjectId           int64
 }
 
-// func (t *TCOP) CreateAlarmPolicy(ctx context.Context, policies *entity.AlarmPolicies) (*entity.AlarmPolicies, error) {
-// 	request := monitor.NewCreateAlarmPolicyRequest()
-// 	t.client.CreateAlarmPolicyWithContext(ctx, request)
-// }
+// CreateAlarmPolicy 创建告警接口，由于接口不支持 IsBindAll 所以只支持按照标签绑定的方式进行调整告警
+func (t *TCOP) CreateAlarmPolicy(ctx context.Context, params *CreateAlarmParams) (*entity.CreatePolicyResult, error) {
+	request := monitor.NewCreateAlarmPolicyRequest()
+	request.Module = common.StringPtr(AlarmModule)
+	request.MonitorType = common.StringPtr(MonitorType)
+	request.PolicyName = common.StringPtr(params.Name)
+	request.Remark = common.StringPtr(params.Remark)
+	request.Namespace = common.StringPtr(params.Namespace)
+	request.ConditionTemplateId = common.Int64Ptr(params.ConditionTemplateId)
+	request.ProjectId = common.Int64Ptr(params.ProjectId)
+	for _, d := range params.NoticeIDs {
+		request.NoticeIds = append(request.NoticeIds, common.StringPtr(d))
+	}
+	for _, i := range params.Tags {
+		request.Tags = append(
+			request.Tags, &monitor.Tag{
+				Key:   common.StringPtr(i.Key),
+				Value: common.StringPtr(i.Value),
+			},
+		)
+	}
+
+	response, err := t.client.CreateAlarmPolicyWithContext(ctx, request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		fmt.Printf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return convert(
+		response.ToJsonString(), "Response",
+		&entity.CreatePolicyResult{},
+	).(*entity.CreatePolicyResult), nil
+}
+
+// GetPolicyByID 获取单个告警策略
+func (t *TCOP) GetPolicyByID(ctx context.Context, policyID string) (*entity.Policy, error) {
+	req := monitor.NewDescribeAlarmPolicyRequest()
+	req.Module = common.StringPtr(AlarmModule)
+	req.PolicyId = common.StringPtr(policyID)
+	resp, err := t.client.DescribeAlarmPolicyWithContext(ctx, req)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		fmt.Printf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return convert(resp.ToJsonString(), "Response.Policy", &entity.Policy{}).(*entity.Policy), nil
+}
 
 // 从 json 中得到数据之后，解析为目标对象
 func convert(inputJSON string, path string, entity interface{}) interface{} {
