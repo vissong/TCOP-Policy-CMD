@@ -122,8 +122,8 @@ type Policy struct {
 
 // Tag 标签
 type Tag struct {
-	Key   string `json:"Key"`
-	Value string `json:"Value"`
+	Key   string `json:"Key" yaml:"key"`
+	Value string `json:"Value" yaml:"value"`
 }
 
 // CreatePolicyResult 创建告警策略的结果

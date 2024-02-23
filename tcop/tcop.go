@@ -89,6 +89,9 @@ type CreateAlarmParams struct {
 
 // CreateAlarmPolicy 创建告警接口，由于接口不支持 IsBindAll 所以只支持按照标签绑定的方式进行调整告警
 func (t *TCOP) CreateAlarmPolicy(ctx context.Context, params *CreateAlarmParams) (*entity.CreatePolicyResult, error) {
+	if params.ConditionTemplateId == 0 {
+		return nil, fmt.Errorf("createAlarmParams.ConditionTemplateId is Requreid")
+	}
 	request := monitor.NewCreateAlarmPolicyRequest()
 	request.Module = common.StringPtr(AlarmModule)
 	request.MonitorType = common.StringPtr(MonitorType)
@@ -108,10 +111,9 @@ func (t *TCOP) CreateAlarmPolicy(ctx context.Context, params *CreateAlarmParams)
 			},
 		)
 	}
-
 	response, err := t.client.CreateAlarmPolicyWithContext(ctx, request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		fmt.Printf("An API error has returned: %s", err)
+		fmt.Printf("CreateAlarmPolicyWithContext An API error has returned: %s", err)
 	}
 	if err != nil {
 		return nil, err
@@ -137,6 +139,33 @@ func (t *TCOP) GetPolicyByID(ctx context.Context, policyID string) (*entity.Poli
 	}
 
 	return convert(resp.ToJsonString(), "Response.Policy", &entity.Policy{}).(*entity.Policy), nil
+}
+
+// BindResourcesByTag 绑定资源 tag 到具体的告警策略上
+func (t *TCOP) BindResourcesByTag(ctx context.Context, policyID string, tags []entity.Tag) error {
+	policy, err := t.GetPolicyByID(ctx, policyID)
+	if err != nil {
+		return err
+	}
+	req := monitor.NewBindingPolicyTagRequest()
+	req.Module = common.StringPtr(AlarmModule)
+	req.PolicyId = common.StringPtr(policyID)
+	req.GroupId = common.StringPtr("0")
+	req.ServiceType = common.StringPtr(policy.Namespace)
+	for _, tag := range tags {
+		req.BatchTag = append(
+			req.BatchTag, &monitor.PolicyTag{
+				Key:   common.StringPtr(tag.Key),
+				Value: common.StringPtr(tag.Value),
+			},
+		)
+	}
+	// 该请求没有有意义的回包内容
+	_, err = t.client.BindingPolicyTagWithContext(ctx, req)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // 从 json 中得到数据之后，解析为目标对象
