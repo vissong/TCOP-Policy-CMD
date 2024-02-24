@@ -132,3 +132,53 @@ type CreatePolicyResult struct {
 	OriginId  string `json:"OriginId"`
 	RequestId string `json:"RequestId"`
 }
+
+type ConditionsTemplateList struct {
+	Total             int `json:"Total"`
+	TemplateGroupList []struct {
+		Conditions      []Condition   `json:"Conditions"`
+		EventConditions []interface{} `json:"EventConditions"`
+		PolicyGroups    []struct {
+			CanSetDefault           bool   `json:"CanSetDefault"`
+			GroupID                 int    `json:"GroupID"`
+			GroupName               string `json:"GroupName"`
+			InsertTime              int    `json:"InsertTime"`
+			IsDefault               int    `json:"IsDefault"`
+			Enable                  bool   `json:"Enable"`
+			LastEditUin             int    `json:"LastEditUin"`
+			NoShieldedInstanceCount int    `json:"NoShieldedInstanceCount"`
+			ParentGroupID           int    `json:"ParentGroupID"`
+			ProjectID               int    `json:"ProjectID"`
+			Remark                  string `json:"Remark"`
+			UpdateTime              int    `json:"UpdateTime"`
+			TotalInstanceCount      int    `json:"TotalInstanceCount"`
+			ViewName                string `json:"ViewName"`
+			IsUnionRule             int    `json:"IsUnionRule"`
+		} `json:"PolicyGroups"`
+		GroupID     int    `json:"GroupID"`
+		GroupName   string `json:"GroupName"`
+		InsertTime  int    `json:"InsertTime"`
+		LastEditUin int    `json:"LastEditUin"`
+		Remark      string `json:"Remark"`
+		UpdateTime  int    `json:"UpdateTime"`
+		ViewName    string `json:"ViewName"`
+		IsUnionRule int    `json:"IsUnionRule"`
+	} `json:"TemplateGroupList"`
+	RequestId string `json:"RequestId"`
+}
+
+type Condition struct {
+	AlarmNotifyPeriod int    `json:"AlarmNotifyPeriod"`
+	AlarmNotifyType   int    `json:"AlarmNotifyType"`
+	CalcType          string `json:"CalcType"`
+	CalcValue         string `json:"CalcValue"`
+	ContinueTime      string `json:"ContinueTime"`
+	MetricID          int    `json:"MetricID"`
+	MetricDisplayName string `json:"MetricDisplayName"`
+	Period            int    `json:"Period"`
+	RuleID            int    `json:"RuleID"`
+	Unit              string `json:"Unit"`
+	IsAdvanced        int    `json:"IsAdvanced"`
+	IsOpen            int    `json:"IsOpen"`
+	ProductId         string `json:"ProductId"`
+}

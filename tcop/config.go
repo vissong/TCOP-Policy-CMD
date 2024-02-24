@@ -5,6 +5,11 @@ import (
 )
 
 type Config struct {
+	Secret struct {
+		LoadFromEnv bool   `yaml:"loadFromEnv"`
+		SecretID    string `yaml:"secretID"`
+		SecretKey   string `yaml:"secretKey"`
+	} `yaml:"secret"`
 	Policies     []Policy      `yaml:"policies"`
 	ResourceTags []ResourceTag `yaml:"resourceTags"`
 }

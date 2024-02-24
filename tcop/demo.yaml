@@ -1,0 +1,24 @@
+secret:
+  # loadFromEnv = true
+  # 从环境变量中获取调用腾讯云 api 的 id 和 key，这里声明的是环境变量的 name
+  # loadFromEnv = false
+  # 从配置文件读取
+  # 建议：优先推荐放到环境变量，而不是放到配置文件中，如果放在配置文件中，请保障配置文件不提交到 git 仓库中
+  loadFromEnv: true
+  secretID: MyCloudSecretId
+  secretKey: MyCloudSecretKey
+policies:
+  - namespace: redis_mem_edition # 云产品类型
+    conditionID:  8362782 # 触发条件模板 id
+    noticeIDs: 
+      - notice-4uks09xe # 通知渠道模板 id
+    name: QQ基础 Redis 实例告警 # 告警策略名称，创建时候使用，更新时候也会用这个查询后修改
+    remark: 维护 by tcop cmd  # 备注
+    tags: # 监控策略的 tag
+      - key: 用途
+        value: 魔法
+resourceTags: # 资源标签
+  - key: 用途
+    values:
+      - 魔法
+      - 测试

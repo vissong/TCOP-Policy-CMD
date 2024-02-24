@@ -23,10 +23,15 @@ const (
 
 type TCOP struct {
 	client *monitor.Client
+	config *Config
 }
 
-func NewTCOP(client *monitor.Client) *TCOP {
-	return &TCOP{client: client}
+// NewTCOP 创建 tcop 实例
+func NewTCOP(client *monitor.Client, config *Config) *TCOP {
+	return &TCOP{
+		client: client,
+		config: config,
+	}
 }
 
 // SearchAlarmPolicyByName 基于监控策略名字搜索
@@ -166,6 +171,30 @@ func (t *TCOP) BindResourcesByTag(ctx context.Context, policyID string, tags []e
 		return err
 	}
 	return nil
+}
+
+// ListConditionTemplate 获取触发条件模板, id 和 name 分别传一个即可
+func (t *TCOP) ListConditionTemplate(ctx context.Context, id string, name string, namespace string,
+	num int64) (*entity.ConditionsTemplateList, error) {
+	req := monitor.NewDescribeConditionsTemplateListRequest()
+	req.Module = common.StringPtr(AlarmModule)
+	req.ViewName = common.StringPtr(namespace)
+	if id != "" {
+		req.GroupID = common.StringPtr(id)
+	}
+	if name != "" {
+		req.GroupName = common.StringPtr(name)
+	}
+	req.Limit = common.Int64Ptr(num)
+
+	resp, err := t.client.DescribeConditionsTemplateListWithContext(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return convert(
+		resp.ToJsonString(),
+		"Response", &entity.ConditionsTemplateList{},
+	).(*entity.ConditionsTemplateList), nil
 }
 
 // 从 json 中得到数据之后，解析为目标对象
