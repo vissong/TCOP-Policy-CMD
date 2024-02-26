@@ -1,4 +1,4 @@
-module github.com/vissong/TCOP-Policy-CMD
+module github.com/vissong/TCOP-Policy-CMD/tcop
 
 go 1.20
 
