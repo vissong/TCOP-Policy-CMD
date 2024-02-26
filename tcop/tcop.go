@@ -35,8 +35,9 @@ func NewTCOP(client *monitor.Client, config *Config) *TCOP {
 }
 
 // SearchAlarmPolicyByName 基于监控策略名字搜索
-func (t *TCOP) SearchAlarmPolicyByName(ctx context.Context, keyword string) (*entity.AlarmPolicies, error) {
-	log.Printf("keyword is %s", keyword)
+func (t *TCOP) SearchAlarmPolicyByName(ctx context.Context, nameKeyword string, matchAll bool) (*entity.AlarmPolicies,
+	error) {
+	log.Printf("nameKeyword is %s", nameKeyword)
 	var page int64 = 1
 	result := &entity.AlarmPolicies{}
 	maxLoop := 1000
@@ -51,7 +52,12 @@ func (t *TCOP) SearchAlarmPolicyByName(ctx context.Context, keyword string) (*en
 			return nil, err
 		}
 		for _, item := range list.Policies {
-			if strings.Contains(item.PolicyName, keyword) {
+			// 名称不完全匹配
+			if !matchAll && strings.Contains(item.PolicyName, nameKeyword) {
+				result.Policies = append(result.Policies, item)
+			}
+			// 名称完全匹配
+			if matchAll && item.PolicyName == nameKeyword {
 				result.Policies = append(result.Policies, item)
 			}
 		}

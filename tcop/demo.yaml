@@ -8,16 +8,16 @@ secret:
   secretID: MyCloudSecretId
   secretKey: MyCloudSecretKey
 policies:
-  - namespace: redis_mem_edition # 云产品类型
-    conditionID:  8362782 # 触发条件模板 id
-    noticeIDs: 
-      - notice-4uks09xe # 通知渠道模板 id
-    name: QQ基础 Redis 实例告警 # 告警策略名称，创建时候使用，更新时候也会用这个查询后修改
-    remark: 维护 by tcop cmd  # 备注
-    tags: # 监控策略的 tag
+  - namespace: redis_mem_edition    # 云产品类型, https://cloud.tencent.com/document/product/248/50397 查看全部
+    conditionID:  8362782           # 触发条件模板 id，https://console.cloud.tencent.com/monitor/alarm/template 查看
+    noticeIDs:                      # 通知渠道模板 id，https://console.cloud.tencent.com/monitor/alarm/notice 查看
+      - notice-4uks09xe
+    name: QQ基础Redis实例告警         # 告警策略名称，创建时候使用，更新时候也会用这个查询后修改
+    remark: 维护 by tcop cmd         # 备注
+    tags:                           # 监控策略的 tag 用于管理监控，监控的实例无关
       - key: 用途
         value: 魔法
-resourceTags: # 资源标签
+resourceTags:                       # 监控覆盖的资源标签的 tag
   - key: 用途
     values:
       - 魔法

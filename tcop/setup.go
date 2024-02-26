@@ -24,7 +24,7 @@ func SetupAlarmPolicy(ctx context.Context, t *TCOP, config *Config) error {
 	for _, policy := range config.Policies {
 		var _policyID string
 		log.Printf("处理告警策略: %s \n", policy.Name)
-		existPolicies, err := t.SearchAlarmPolicyByName(ctx, policy.Name)
+		existPolicies, err := t.SearchAlarmPolicyByName(ctx, policy.Name, true)
 		if err != nil {
 			continue
 		}
