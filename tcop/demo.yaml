@@ -12,7 +12,7 @@ policies:
     conditionID:  8362782           # 触发条件模板 id，https://console.cloud.tencent.com/monitor/alarm/template 查看
     noticeIDs:                      # 通知渠道模板 id，https://console.cloud.tencent.com/monitor/alarm/notice 查看
       - notice-4uks09xe
-    name: QQ基础Redis实例告警         # 告警策略名称，创建时候使用，更新时候也会用这个查询后修改
+    name: 基础Redis实例告警         # 告警策略名称，创建时候使用，更新时候也会用这个查询后修改
     remark: 维护 by tcop cmd         # 备注
     tags:                           # 监控策略的 tag 用于管理监控，监控的实例无关
       - key: 用途

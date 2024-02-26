@@ -32,6 +32,11 @@
 1. 针对不同的云产品，创建告警触发条件模板，并记录 id （url 上的数字 detail 路径后的数字）
 2. 创建告警通知模板，用于告警的发送，如果不同的云产品想要发送到不同渠道，请创建多个，并记录 id（如：notice-4uks09xe）
 
+安装工具，执行：
+```bash
+go install github.com/vissong/TCOP-Policy-CMD/tcop@latest
+```
+
 执行工具：
 
 1. 创建密钥：https://console.cloud.tencent.com/cam/capi 建议使用子账号方式，方便控制密钥的权限范围
